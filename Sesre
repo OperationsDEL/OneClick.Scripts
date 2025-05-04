@@ -727,29 +727,47 @@ repeat
     end
 until not purpletarget  -- Fixed placement of 'until'
 
-local PlaceID = game.PlaceId
-local HttpService = game:GetService('HttpService')
-local TeleportService = game:GetService("TeleportService")
-local CurrentServerID = game.JobId
+local Player = game.Players.LocalPlayer    
+local Http = game:GetService("HttpService")
+local TPS = game:GetService("TeleportService")
+local Api = "https://games.roblox.com/v1/games/"
 
-local Servers = HttpService:JSONDecode(game:HttpGet('https://games.roblox.com/v1/games/' .. PlaceID .. '/servers/Public?sortOrder=Asc&limit=100'))
-local AvailableServers = {}
+local PlaceId, CurrentJobId = game.PlaceId, game.JobId
+local ServersAPI = Api..PlaceId.."/servers/Public?sortOrder=Asc&limit=100"
 
-for _, v in ipairs(Servers.data) do
-    if v.id ~= CurrentServerID then
-        table.insert(AvailableServers, v.id)
+local function ListServers(cursor)
+    local url = ServersAPI .. ((cursor and "&cursor="..cursor) or "")
+    local success, response = pcall(function()
+        return Http:JSONDecode(game:HttpGet(url))
+    end)
+    if success then
+        return response
+    else
+        return {data = {}}
     end
 end
 
-while true do
-    if #AvailableServers > 0 then
-        TeleportService:TeleportToPlaceInstance(PlaceID, AvailableServers[math.random(#AvailableServers)], game.Players.LocalPlayer)
+local TimeToWait = 5 -- seconds
+
+while wait(TimeToWait) do
+    local allServers = {}
+    local cursor = nil
+
+    -- Randomly choose to go through up to 5 pages
+    for _ = 1, math.random(1, 5) do
+        local result = ListServers(cursor)
+        for _, server in ipairs(result.data) do
+            if server.id ~= CurrentJobId and server.playing < server.maxPlayers then
+                table.insert(allServers, server)
+            end
+        end
+        cursor = result.nextPageCursor
+        if not cursor then break end
     end
-    wait(15)
+
+    if #allServers > 0 then
+        Player.Character.HumanoidRootPart.Anchored = true
+        local chosen = allServers[math.random(1, #allServers)]
+        TPS:TeleportToPlaceInstance(PlaceId, chosen.id, Player)
+    end
 end
-
-
-
-
-
-
