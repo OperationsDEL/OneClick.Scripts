@@ -430,6 +430,58 @@ end
 
 spawn(MapDestroyer)
 
+local ActiveChests
+
+local function chesttimer()
+    while true do 
+        if workspace:FindFirstChild("__THINGS") then
+            local __THINGS = workspace.__THINGS
+            if __THINGS:FindFirstChild("__INSTANCE_CONTAINER") then
+                local __INSTANCE_CONTAINER = __THINGS.__INSTANCE_CONTAINER
+                if __INSTANCE_CONTAINER:FindFirstChild("Active") then
+                    local Active = __INSTANCE_CONTAINER.Active
+                    if Active:FindFirstChild("AdvancedDigsite") then
+                        local AdvancedDigsite = Active.AdvancedDigsite
+                        if AdvancedDigsite:FindFirstChild("Important") then
+                            local Important = AdvancedDigsite.Important
+                            if Important:FindFirstChild("ActiveChests") then
+                                ActiveChests = Important.ActiveChests
+                                for _, child in ipairs(ActiveChests:GetChildren()) do
+                                    if tonumber(child.Name) == nil then
+                                        child.Name = "0"
+                                    end
+                                end
+                            end
+                        end
+                    end
+                end
+            end
+        end
+        wait(1)
+    end
+end
+
+local function deletechests()
+    while true do
+        if ActiveChests then
+            for _, child in ipairs(ActiveChests:GetChildren()) do
+                local num = tonumber(child.Name)
+                if num then
+                    num = num + 1
+                    child.Name = tostring(num)
+                    if num > 5 then
+                        child:Destroy()
+                    end
+                end
+            end
+        end
+        wait(1)
+    end
+end
+
+spawn(chesttimer)
+spawn(deletechests)
+
 local function deleterows()
     while true do
         if workspace:FindFirstChild("__THINGS") then
