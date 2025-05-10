@@ -691,39 +691,9 @@ end
 
 spawn(startfarm)
 
-local randomWait = math.random(300, 350)
+local randomWait = math.random(150, 200)
 wait(randomWait)
 local purpletarget = false
-
-repeat
-    wait(1)
-    if workspace:FindFirstChild("__THINGS") then
-        local __THINGS = workspace.__THINGS
-        if __THINGS:FindFirstChild("__INSTANCE_CONTAINER") then
-            local __INSTANCE_CONTAINER = __THINGS.__INSTANCE_CONTAINER
-            if __INSTANCE_CONTAINER:FindFirstChild("Active") then
-                local Active = __INSTANCE_CONTAINER.Active
-                if Active:FindFirstChild("AdvancedDigsite") then
-                    local AdvancedDigsite = Active.AdvancedDigsite
-                    if AdvancedDigsite:FindFirstChild("Important") then
-                        local Important = AdvancedDigsite.Important
-                        if Important:FindFirstChild("ActiveBlocks") then
-                            local ActiveBlocks = Important.ActiveBlocks
-                            local foundPurple = false
-
-                            for _, part in ipairs(ActiveBlocks:GetChildren()) do
-                                if part:IsA("BasePart") and part.BrickColor == BrickColor.new("Royal purple") then
-                                    purpletarget = true
-                                    break
-                                end
-                            end
-                        end
-                    end
-                end
-            end
-        end
-    end
-until not purpletarget  -- Fixed placement of 'until'
 
 local Player = game.Players.LocalPlayer    
 local Http = game:GetService("HttpService")
@@ -769,3 +739,36 @@ while wait(TimeToWait) do
         TPS:TeleportToPlaceInstance(PlaceId, chosen.id, Player)
     end
 end
+
+
+repeat
+    wait(1)
+    if workspace:FindFirstChild("__THINGS") then
+        local __THINGS = workspace.__THINGS
+        if __THINGS:FindFirstChild("__INSTANCE_CONTAINER") then
+            local __INSTANCE_CONTAINER = __THINGS.__INSTANCE_CONTAINER
+            if __INSTANCE_CONTAINER:FindFirstChild("Active") then
+                local Active = __INSTANCE_CONTAINER.Active
+                if Active:FindFirstChild("AdvancedDigsite") then
+                    local AdvancedDigsite = Active.AdvancedDigsite
+                    if AdvancedDigsite:FindFirstChild("Important") then
+                        local Important = AdvancedDigsite.Important
+                        if Important:FindFirstChild("ActiveBlocks") then
+                            local ActiveBlocks = Important.ActiveBlocks
+                            local foundPurple = false
+
+                            for _, part in ipairs(ActiveBlocks:GetChildren()) do
+                                if part:IsA("BasePart") and part.BrickColor == BrickColor.new("Royal purple") then
+                                    purpletarget = true
+                                    break
+                                end
+                            end
+                        end
+                    end
+                end
+            end
+        end
+    end
+until not purpletarget  -- Fixed placement of 'until'
+
+
