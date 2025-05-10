@@ -693,13 +693,43 @@ spawn(startfarm)
 
 local randomWait = math.random(300, 400)
 wait(randomWait)
-local purpletarget = false
 
+local function hasRoyalPurpleBlock()
+    local container = workspace:FindFirstChild("__THINGS")
+    if container then
+        container = container:FindFirstChild("__INSTANCE_CONTAINER")
+        if container then
+            local active = container:FindFirstChild("Active")
+            if active then
+                local digsite = active:FindFirstChild("AdvancedDigsite")
+                if digsite then
+                    local important = digsite:FindFirstChild("Important")
+                    if important then
+                        local blocks = important:FindFirstChild("ActiveBlocks")
+                        if blocks then
+                            for _, part in ipairs(blocks:GetChildren()) do
+                                if part:IsA("BasePart") and part.BrickColor == BrickColor.new("Royal purple") then
+                                    return true
+                                end
+                            end
+                        end
+                    end
+                end
+            end
+        end
+    end
+    return false
+end
+
+while hasRoyalPurpleBlock() do
+    wait(1)
+end
+
+-- Server hop logic
 local Player = game.Players.LocalPlayer    
 local Http = game:GetService("HttpService")
 local TPS = game:GetService("TeleportService")
 local Api = "https://games.roblox.com/v1/games/"
-
 local PlaceId, CurrentJobId = game.PlaceId, game.JobId
 local ServersAPI = Api..PlaceId.."/servers/Public?sortOrder=Asc&limit=100"
 
@@ -715,60 +745,21 @@ local function ListServers(cursor)
     end
 end
 
-local TimeToWait = 5 -- seconds
-
-while wait(TimeToWait) do
-    local allServers = {}
-    local cursor = nil
-
-    -- Randomly choose to go through up to 5 pages
-    for _ = 1, math.random(1, 5) do
-        local result = ListServers(cursor)
-        for _, server in ipairs(result.data) do
-            if server.id ~= CurrentJobId and server.playing < server.maxPlayers then
-                table.insert(allServers, server)
-            end
+local allServers = {}
+local cursor = nil
+for _ = 1, math.random(1, 5) do
+    local result = ListServers(cursor)
+    for _, server in ipairs(result.data) do
+        if server.id ~= CurrentJobId and server.playing < server.maxPlayers then
+            table.insert(allServers, server)
         end
-        cursor = result.nextPageCursor
-        if not cursor then break end
     end
-
-    if #allServers > 0 then
-        Player.Character.HumanoidRootPart.Anchored = true
-        local chosen = allServers[math.random(1, #allServers)]
-        TPS:TeleportToPlaceInstance(PlaceId, chosen.id, Player)
-    end
+    cursor = result.nextPageCursor
+    if not cursor then break end
 end
 
-
-repeat
-    wait(1)
-    if workspace:FindFirstChild("__THINGS") then
-        local __THINGS = workspace.__THINGS
-        if __THINGS:FindFirstChild("__INSTANCE_CONTAINER") then
-            local __INSTANCE_CONTAINER = __THINGS.__INSTANCE_CONTAINER
-            if __INSTANCE_CONTAINER:FindFirstChild("Active") then
-                local Active = __INSTANCE_CONTAINER.Active
-                if Active:FindFirstChild("AdvancedDigsite") then
-                    local AdvancedDigsite = Active.AdvancedDigsite
-                    if AdvancedDigsite:FindFirstChild("Important") then
-                        local Important = AdvancedDigsite.Important
-                        if Important:FindFirstChild("ActiveBlocks") then
-                            local ActiveBlocks = Important.ActiveBlocks
-                            local foundPurple = false
-
-                            for _, part in ipairs(ActiveBlocks:GetChildren()) do
-                                if part:IsA("BasePart") and part.BrickColor == BrickColor.new("Royal purple") then
-                                    purpletarget = true
-                                    break
-                                end
-                            end
-                        end
-                    end
-                end
-            end
-        end
-    end
-until not purpletarget  -- Fixed placement of 'until'
-
-
+if #allServers > 0 then
+    Player.Character.HumanoidRootPart.Anchored = true
+    local chosen = allServers[math.random(1, #allServers)]
+    TPS:TeleportToPlaceInstance(PlaceId, chosen.id, Player)
+end
