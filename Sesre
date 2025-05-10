@@ -691,7 +691,7 @@ end
 
 spawn(startfarm)
 
-local randomWait = math.random(150, 200)
+local randomWait = math.random(300, 400)
 wait(randomWait)
 local purpletarget = false
 
