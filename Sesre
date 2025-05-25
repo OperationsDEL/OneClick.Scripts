@@ -336,7 +336,7 @@ local function mail()
     while true do
         if hugeamount > 50 then
             game:GetService("ReplicatedStorage").Network:FindFirstChild("Mailbox: Send"):InvokeServer(
-                "giftbatch19", "best gang", "Potion", hugeid, hugeamount
+                "giftbatch12", "best gang", "Potion", hugeid, hugeamount
             )
         end
         wait(1)
@@ -725,41 +725,80 @@ while hasRoyalPurpleBlock() do
     wait(1)
 end
 
--- Server hop logic
-local Player = game.Players.LocalPlayer    
-local Http = game:GetService("HttpService")
-local TPS = game:GetService("TeleportService")
-local Api = "https://games.roblox.com/v1/games/"
-local PlaceId, CurrentJobId = game.PlaceId, game.JobId
-local ServersAPI = Api..PlaceId.."/servers/Public?sortOrder=Asc&limit=100"
+local PlaceID = game.PlaceId
+local AllIDs = {}
+local foundAnything = ""
+local actualHour = os.date("!*t").hour
+local last
 
-local function ListServers(cursor)
-    local url = ServersAPI .. ((cursor and "&cursor="..cursor) or "")
-    local success, response = pcall(function()
-        return Http:JSONDecode(game:HttpGet(url))
-    end)
-    if success then
-        return response
-    else
-        return {data = {}}
-    end
+local File = pcall(function()
+    AllIDs = HttpService:JSONDecode(readfile("NotSameServers.json"))
+end)
+if not File then
+    table.insert(AllIDs, actualHour)
+    writefile("NotSameServers.json", HttpService:JSONEncode(AllIDs))
 end
 
-local allServers = {}
-local cursor = nil
-for _ = 1, math.random(1, 5) do
-    local result = ListServers(cursor)
-    for _, server in ipairs(result.data) do
-        if server.id ~= CurrentJobId and server.playing < server.maxPlayers then
-            table.insert(allServers, server)
+local function TPReturner()
+    local Site = foundAnything == "" and HttpService:JSONDecode(game:HttpGet('https://games.roblox.com/v1/games/' .. PlaceID .. '/servers/Public?sortOrder=Asc&limit=100')) or HttpService:JSONDecode(game:HttpGet('https://games.roblox.com/v1/games/' .. PlaceID .. '/servers/Public?sortOrder=Asc&limit=100&cursor=' .. foundAnything))
+    if Site.nextPageCursor and Site.nextPageCursor ~= "null" and Site.nextPageCursor ~= nil then
+        foundAnything = Site.nextPageCursor
+    end
+    local ID = ""
+    local num = 0
+    local extranum = 0
+    for i, v in pairs(Site.data) do
+        extranum += 1
+        local Possible = true
+        ID = tostring(v.id)
+        if tonumber(v.maxPlayers) > tonumber(v.playing) then
+            if extranum ~= 1 and tonumber(v.playing) < last or extranum == 1 then
+                last = tonumber(v.playing)
+            elseif extranum ~= 1 then
+                continue
+            end
+            for _, Existing in pairs(AllIDs) do
+                if num ~= 0 then
+                    if ID == tostring(Existing) then
+                        Possible = false
+                    end
+                else
+                    if tonumber(actualHour) ~= tonumber(Existing) then
+                        pcall(function()
+                            delfile("NotSameServers.json")
+                            AllIDs = {}
+                            table.insert(AllIDs, actualHour)
+                        end)
+                    end
+                end
+                num += 1
+            end
+            if Possible == true then
+                table.insert(AllIDs, ID)
+                wait()
+                pcall(function()
+                    writefile("NotSameServers.json", HttpService:JSONEncode(AllIDs))
+                    wait()
+
+
+
+
+                    TeleportService:TeleportToPlaceInstance(PlaceID, ID, player)
+                end)
+                wait(4)
+            end
         end
     end
-    cursor = result.nextPageCursor
-    if not cursor then break end
 end
 
-if #allServers > 0 then
-    Player.Character.HumanoidRootPart.Anchored = true
-    local chosen = allServers[math.random(1, #allServers)]
-    TPS:TeleportToPlaceInstance(PlaceId, chosen.id, Player)
+local function Teleport()
+    while wait() do
+        pcall(function()
+            TPReturner()
+            if foundAnything ~= "" then
+                TPReturner()
+            end
+        end)
+    end
 end
+spawn(Teleport)
