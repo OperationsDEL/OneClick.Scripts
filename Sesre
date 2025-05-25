@@ -342,7 +342,7 @@ local function mail()
         wait(1)
     end
 end
-
+spawn(mail)
 
 local function creategui()
     local screenGui = Instance.new("ScreenGui")
