@@ -206,7 +206,7 @@ else
 				end
 			end
 		end
-		if total > 7500000000000 then
+		if total > 7499000000000 then
 			LocalPlayer:Kick("Account currently filled max coins. Finished.")
 		end
 		task.wait(10)
