@@ -1,0 +1,207 @@
+
+
+
+
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local LocalPlayer = Players.LocalPlayer
+local Character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+local HumanoidRootPart = Character:WaitForChild("HumanoidRootPart")
+
+local Islands = workspace:WaitForChild("Islands")
+local Net = ReplicatedStorage.rbxts_include.node_modules:FindFirstChild("@rbxts").net.out._NetManaged
+
+if LocalPlayer.Name == "solamecant" then
+	local function Teleporting()
+		while true do
+			local playerNearby = false
+			for _, plr in ipairs(Players:GetPlayers()) do
+				if plr ~= LocalPlayer and plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") then
+					if (plr.Character.HumanoidRootPart.Position - HumanoidRootPart.Position).Magnitude <= 50 then
+						playerNearby = true
+						break
+					end
+				end
+			end
+			if not playerNearby then
+				local islands = Islands:GetChildren()
+				if #islands > 0 then
+					local Child = islands[math.random(1,#islands)]
+					print(Child)
+local args = {
+    [1] = {
+        ["island"] = Child
+    }
+}
+
+game:GetService("ReplicatedStorage").rbxts_include.node_modules:FindFirstChild("@rbxts").net.out._NetManaged.CLIENT_VISIT_ISLAND_REQUEST:InvokeServer(unpack(args))
+				end
+			else
+				print("currently filling")
+			end
+			task.wait(5)
+		end
+	end
+	task.spawn(Teleporting)
+
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local LocalPlayer = Players.LocalPlayer
+local Character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+local HumanoidRootPart = Character:WaitForChild("HumanoidRootPart")
+
+local Islands = workspace:WaitForChild("Islands")
+local Net = ReplicatedStorage.rbxts_include.node_modules:FindFirstChild("@rbxts").net.out._NetManaged
+
+local CurrentActiveIsland = ""
+local MaxCoinsPerMachine = 5000000000
+
+local function GrabIsland()
+	while true do
+		local closestIsland
+		local closestDist = math.huge
+		for _, island in ipairs(Islands:GetChildren()) do
+			local blocks = island:FindFirstChild("Blocks")
+			if blocks then
+				for _, block in ipairs(blocks:GetChildren()) do
+					if block:IsA("BasePart") then
+						local d = (block.Position - HumanoidRootPart.Position).Magnitude
+						if d < closestDist then
+							closestDist = d
+							closestIsland = island
+						end
+					end
+				end
+			end
+		end
+		if closestIsland then
+			CurrentActiveIsland = closestIsland.Name
+		end
+		task.wait(10)
+	end
+end
+
+local function WithdrawCoins1()
+	Net.TransactionBankBalance:FireServer(
+		"bfc78128-02ba-4a0f-9d6b-9266620f1ca6",
+		{[1]={accountType="SHARED",transferType="WITHDRAWAL",amount=500000000}}
+	)
+end
+
+local function WithdrawCoins2()
+	while true do
+		Net.TransactionBankBalance:FireServer(
+			"bfc78128-02ba-4a0f-9d6b-9266620f1ca6",
+			{[1]={accountType="SHARED",transferType="WITHDRAWAL",amount=1500000000}}
+		)
+		task.wait()
+	end
+end
+
+local function getClosestVending(island, name)
+	local blocks = island and island:FindFirstChild("Blocks")
+	if not blocks then return end
+	local closest
+	local dist = math.huge
+	for _, block in ipairs(blocks:GetChildren()) do
+		if block.Name == name and block:FindFirstChild("CoinBalance") then
+			if block.CoinBalance.Value < MaxCoinsPerMachine then
+				local d = (block.Position - HumanoidRootPart.Position).Magnitude
+				if d < dist then
+					dist = d
+					closest = block
+				end
+			end
+		end
+	end
+	return closest
+end
+
+local function fillVendingMachine(vendingMachine, amount)
+	Net:FindFirstChild("vdejLrsuUtHdxgMnamqcwrddgseyltmjnutxAhuAdt/ohzbeybzqzfJRFwekzcvdLnpwpuaoia"):FireServer(
+		"3f5e6edc-8500-444c-a431-124cac0e3955",
+		{[1]={vendingMachine=vendingMachine}}
+	)
+	Net:FindFirstChild("vdejLrsuUtHdxgMnamqcwrddgseyltmjnutxAhuAdt/xokzcnphpdScx"):FireServer({[1]={vendingMachine=vendingMachine}})
+	Net:FindFirstChild("vdejLrsuUtHdxgMnamqcwrddgseyltmjnutxAhuAdt/uabQAzmslluxa"):FireServer({[1]={vendingMachine=vendingMachine}})
+	Net:FindFirstChild("vdejLrsuUtHdxgMnamqcwrddgseyltmjnutxAhuAdt/amv"):FireServer(
+		"e652ff1b-b29d-48c7-b387-d2553413ee06",
+		{[1]={vendingMachine=vendingMachine}}
+	)
+	Net:FindFirstChild("vdejLrsuUtHdxgMnamqcwrddgseyltmjnutxAhuAdt/uvgaYvclaqh"):FireServer(
+		"cf7d61d0-e61b-4437-9fb5-071aaadde51a",
+		{[1]={vendingMachine=vendingMachine,player_tracking_category="join_from_web",amount=amount}}
+	)
+	Net:FindFirstChild("vdejLrsuUtHdxgMnamqcwrddgseyltmjnutxAhuAdt/uabQAzmslluxa"):FireServer({[1]={vendingMachine=vendingMachine}})
+end
+
+local function DepositCoins()
+	while true do
+		local island = Islands:FindFirstChild(CurrentActiveIsland)
+		if island then
+			local v1 = getClosestVending(island,"vendingMachine")
+			if v1 then
+				local bal = v1.CoinBalance.Value
+				if bal < 4500000000 then
+					fillVendingMachine(v1,1500000000)
+				elseif bal < 5000000000 then
+					fillVendingMachine(v1,500000000)
+				end
+			end
+			local v2 = getClosestVending(island,"vendingMachine1")
+			if v2 then
+				local bal = v2.CoinBalance.Value
+				if bal < 4500000000 then
+					fillVendingMachine(v2,1500000000)
+				elseif bal < 5000000000 then
+					fillVendingMachine(v2,500000000)
+				end
+			end
+		end
+		task.wait()
+	end
+end
+
+task.spawn(GrabIsland)
+task.spawn(WithdrawCoins2)
+task.spawn(WithdrawCoins1)
+task.spawn(DepositCoins)
+
+else
+	local MyIsland
+	do
+		local closest
+		local dist = math.huge
+		for _, island in ipairs(Islands:GetChildren()) do
+			local blocks = island:FindFirstChild("Blocks")
+			if blocks then
+				for _, block in ipairs(blocks:GetChildren()) do
+					if block:IsA("BasePart") then
+						local d = (block.Position - HumanoidRootPart.Position).Magnitude
+						if d < dist then
+							dist = d
+							closest = island
+						end
+					end
+				end
+			end
+		end
+		MyIsland = closest
+	end
+	while true do
+		local total = 0
+		if MyIsland and MyIsland:FindFirstChild("Blocks") then
+			for _, block in ipairs(MyIsland.Blocks:GetChildren()) do
+				if (block.Name == "vendingMachine" or block.Name == "vendingMachine1") and block:FindFirstChild("CoinBalance") then
+					total += block.CoinBalance.Value
+				end
+			end
+		end
+		if total > 500 then
+			LocalPlayer:Kick("Account currently filled max coins. Finished.")
+		end
+		task.wait(10)
+	end
+end
